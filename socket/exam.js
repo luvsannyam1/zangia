@@ -20,7 +20,6 @@ const initializeSocket = (io) => {
 
     socket.join(userId);
 
-    // Start an exam
     socket.on("startExam", async ({ testId }) => {
       let test = await getPopulatedTestData(testId);
 
@@ -30,11 +29,10 @@ const initializeSocket = (io) => {
       }
 
       socket.join(userId);
-      // Initialize the exam timer for the user
       if (!activeExams[userId]) {
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
           if (!activeExams[userId]) {
-            clearInterval(interval); // Stop timer if exam is finished
+            clearInterval(interval);
             return;
           }
           io.to(userId).emit("timerUpdate", {
@@ -44,15 +42,18 @@ const initializeSocket = (io) => {
           activeExams[userId].timeRemaining -= 1;
 
           if (activeExams[userId]?.timeRemaining <= 0) {
-            clearInterval(interval); // Stop timer
+            clearInterval(interval);
 
-            evaluateTest(
+            const resultData = await evaluateTest(
               userId,
               activeExams[userId].testId,
               activeExams[userId].answers
             );
-            delete activeExams[userId]; // Remove the user from active exams
-            io.to(userId).emit("examFinished", { message: "Time is up!" });
+            delete activeExams[userId];
+            io.to(userId).emit("examFinished", {
+              message: "Time is up!",
+              result: resultData,
+            });
           }
         }, 1000);
 
@@ -71,10 +72,17 @@ const initializeSocket = (io) => {
         answers: activeExams[userId].answers,
       });
     });
-    socket.on("finishTest", ({ answer }) => {
-      evaluateTest(userId, activeExams[userId].testId, answer);
+    socket.on("finishTest", async ({ answer }) => {
+      const resultData = await evaluateTest(
+        userId,
+        activeExams[userId].testId,
+        answer
+      );
       delete activeExams[userId];
-      io.to(userId).emit("examFinished", { message: "Finished!" });
+      io.to(userId).emit("examFinished", {
+        message: "Finished!",
+        result: resultData,
+      });
     });
 
     // Submit answer

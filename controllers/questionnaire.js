@@ -58,8 +58,10 @@ exports.updateQuestionnaire = asyncHandler(async (req, res, next) => {
   }
 
   // Validate if correctAnswer exists in answers array
-  if (answers && correctAnswer && answers.includes(correctAnswer)) {
-    correctAnswer = answers[0];
+  if (answers.length === 0) {
+    return next(
+      new ErrorResponse("Correct answer must be one of the answers", 400)
+    );
   }
 
   questionnaire = await Questionnaire.findByIdAndUpdate(
@@ -67,7 +69,7 @@ exports.updateQuestionnaire = asyncHandler(async (req, res, next) => {
     {
       question,
       answers,
-      correctAnswer,
+      correctAnswer: answers[0],
       imgUrls,
       videoUrls,
     },

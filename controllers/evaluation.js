@@ -50,6 +50,7 @@ exports.evaluateTest = async (userId, testId, userAnswers) => {
       percentage: (score / totalQuestions) * 100,
       feedback: score === totalQuestions ? "Perfect!" : "Try again!",
     };
+    console.log("result :", result);
 
     return result;
   } catch (error) {
