@@ -12,6 +12,7 @@ const questionnaire = require("./routes/questionnaire");
 const test = require("./routes/test");
 const transport = require("./configs/email");
 const cirriculum = require("./routes/cirriculum");
+const exam = require("./routes/exam");
 const initializeSocket = require("./socket/exam");
 
 const upload = require("./configs/upload");
@@ -30,6 +31,7 @@ app.use("/server/answer", answer);
 app.use("/server/questionnaire", questionnaire);
 app.use("/server/test", test);
 app.use("/server/cirriculum", cirriculum);
+app.use("/server/exam", exam);
 
 app.use("/server/uploads", express.static(path.join(__dirname, "uploads")));
 

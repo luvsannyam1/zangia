@@ -1,7 +1,7 @@
 const Questionnaire = require("../models/Questionnaire"); // Import the Questionnaire model
 const Answer = require("../models/Answer"); // Import the Answer model
 const asyncHandler = require("../middlewares/async");
-const ErrorResponse = require("../middlewares/error");
+const ErrorResponse = require("../utils/errorResponse");
 
 // @desc    Create a new questionnaire
 // @route   POST /api/v1/questionnaires
@@ -34,10 +34,7 @@ exports.createQuestionnaire = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/questionnaires
 // @access  Public
 exports.getQuestionnaires = asyncHandler(async (req, res, next) => {
-  const questionnaires = await Questionnaire.find().populate({
-    path: "answers correctAnswer",
-    select: "description imageUrl",
-  });
+  const questionnaires = await Questionnaire.find();
 
   res.status(200).json({
     success: true,
@@ -62,9 +59,7 @@ exports.updateQuestionnaire = asyncHandler(async (req, res, next) => {
 
   // Validate if correctAnswer exists in answers array
   if (answers && correctAnswer && answers.includes(correctAnswer)) {
-    return next(
-      new ErrorResponse("Correct answer must be one of the answers", 400)
-    );
+    correctAnswer = answers[0];
   }
 
   questionnaire = await Questionnaire.findByIdAndUpdate(

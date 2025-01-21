@@ -131,5 +131,10 @@ exports.getPopulatedTestData = asyncHandler(async (id) => {
     path: "testQuestions",
     populate: { path: "answers correctAnswer" },
   });
-  return test;
+  if (test.length <= 10) {
+    return arr;
+  }
+
+  const shuffled = arr.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 10);
 });

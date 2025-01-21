@@ -37,17 +37,20 @@ const initializeSocket = (io) => {
             clearInterval(interval); // Stop timer if exam is finished
             return;
           }
-
-          activeExams[userId].timeRemaining -= 1;
-
           io.to(userId).emit("timerUpdate", {
             timeRemaining: activeExams[userId].timeRemaining,
           });
 
-          if (activeExams[userId].timeRemaining <= 0) {
+          activeExams[userId].timeRemaining -= 1;
+
+          if (activeExams[userId]?.timeRemaining <= 0) {
             clearInterval(interval); // Stop timer
 
-            evaluateTest(userId, activeExams[userId].answers);
+            evaluateTest(
+              userId,
+              activeExams[userId].testId,
+              activeExams[userId].answers
+            );
             delete activeExams[userId]; // Remove the user from active exams
             io.to(userId).emit("examFinished", { message: "Time is up!" });
           }
@@ -65,11 +68,12 @@ const initializeSocket = (io) => {
       socket.emit("examStarted", {
         test: test,
         timeRemaining: test.duration,
+        answers: activeExams[userId].answers,
       });
     });
     socket.on("finishTest", ({ answer }) => {
-      evaluateTest(activeExams[userId].testId, answer);
-      delete activeExams[userId]; // Remove the user from active exams
+      evaluateTest(userId, activeExams[userId].testId, answer);
+      delete activeExams[userId];
       io.to(userId).emit("examFinished", { message: "Finished!" });
     });
 
@@ -84,7 +88,7 @@ const initializeSocket = (io) => {
       }
 
       console.log(
-        `User ${userId} submitted answer for question ${questionId}:`,
+        `User ${userId} submitted answer for question ${userExam.testId} , ${questionId}:`,
         answer
       );
 
@@ -98,19 +102,15 @@ const initializeSocket = (io) => {
       if (exists === -1) {
         activeExams[userId].answers.push(answerValue);
       } else {
-        activeExams[userId].answers[
-          activeExams[userId].answers.indexOf(exists)
-        ].answer = answerValue.answer;
+        activeExams[userId].answers[exists].answer = answerValue.answer;
       }
 
-      // Optional: Save the user's answer to the database
       socket.emit("answerSubmitted", answerValue);
     });
 
     // Disconnect
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
-      // Optionally, clean up active exams
     });
   });
 };
