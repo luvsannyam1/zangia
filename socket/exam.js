@@ -50,7 +50,7 @@ const initializeSocket = (io) => {
               activeExams[userId].answers
             );
             delete activeExams[userId];
-            io.to(userId).emit("examFinished", {
+            await io.to(userId).emit("examFinished", {
               message: "Time is up!",
               result: resultData,
             });
@@ -79,7 +79,7 @@ const initializeSocket = (io) => {
         answer
       );
       delete activeExams[userId];
-      io.to(userId).emit("examFinished", {
+      await io.to(userId).emit("examFinished", {
         message: "Finished!",
         result: resultData,
       });
